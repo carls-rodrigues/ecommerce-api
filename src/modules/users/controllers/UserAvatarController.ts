@@ -10,6 +10,8 @@ export default class UserAvatarController {
       avatarFilename: req.file.filename,
     });
 
-    return res.json(user);
+    return res.json({
+      status: 'Avatar updated',
+    });
   }
 }
