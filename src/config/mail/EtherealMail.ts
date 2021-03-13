@@ -43,8 +43,8 @@ export default class EtherealMail {
     });
     const message = await transporter.sendMail({
       from: {
-        name: from?.name || 'Carlos Rodrigues',
-        address: from?.email || 'cerf@furg.br',
+        name: from?.name,
+        address: from?.email,
       },
       to: {
         name: to.name,
