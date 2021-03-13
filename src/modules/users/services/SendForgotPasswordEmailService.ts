@@ -32,10 +32,6 @@ class SendForgotPasswordEmailService {
         name: user.name,
         email: user.email,
       },
-      from: {
-        name: 'Carlos Rodrigues',
-        email: 'cerf@furg.br',
-      },
       subject: 'Redefinir Senha',
       templateData: {
         file: forgotPasswordTemplate,
