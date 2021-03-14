@@ -17,12 +17,12 @@ class UpdateCustomerService {
     const costumer = await customersRepository.findById(id);
 
     if (!costumer) {
-      throw new AppError('costumer not found');
+      throw new AppError('Costumer not found');
     }
-    const costumerUpdateEmail = await customersRepository.findByEmail(email);
+    const costumerExists = await customersRepository.findByEmail(email);
 
-    if (costumerUpdateEmail && costumerUpdateEmail.id !== id) {
-      throw new AppError('This is already taken');
+    if (costumerExists && costumer.id !== id) {
+      throw new AppError('This email is already taken.');
     }
     costumer.name = name;
     costumer.email = email;
