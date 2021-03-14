@@ -6,10 +6,9 @@ import CustomersRepository from '../typeorm/repositories/CustomersRepository';
 interface IRequest {
   name: string;
   email: string;
-  password: string;
 }
 
-class CreateUserService {
+class CreateCustomerService {
   public async execute({ name, email }: IRequest): Promise<Customer> {
     const customersRepository = getCustomRepository(CustomersRepository);
 
@@ -25,4 +24,4 @@ class CreateUserService {
   }
 }
 
-export default CreateUserService;
+export default CreateCustomerService;
