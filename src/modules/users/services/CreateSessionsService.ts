@@ -16,7 +16,7 @@ interface IResponse {
   token: string;
 }
 
-class CreateSessionsSerives {
+class CreateSessionsSerices {
   public async execute({ email, password }: IRequest): Promise<IResponse> {
     const usersRepository = getCustomRepository(UsersRepository);
 
@@ -42,4 +42,4 @@ class CreateSessionsSerives {
   }
 }
 
-export default CreateSessionsSerives;
+export default CreateSessionsSerices;
