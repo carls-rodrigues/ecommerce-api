@@ -4,11 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node dist/shared/http/server.js",
+    "start": "node build/shared/http/server.js",
     "lint-fix": "eslint . --ext .ts --fix",
     "lint": "yarn lint-fix &&  eslint . --ext .ts",
     "typeorm": "ts-node-dev ./node_modules/typeorm/cli.js",
-    "build": "babel src --extensions \".js,.ts\" --out-dir dist --copy-files",
+    "build": "rimraf build && babel src --extensions \".js,.ts\" --out-dir build --copy-files",
     "dev": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules src/shared/http/server.ts",
     "up": "yarn typeorm migration:run",
     "revert": "yarn typeorm migration:revert",
@@ -62,6 +62,7 @@
     "rate-limiter-flexible": "^2.2.1",
     "redis": "^3.0.2",
     "reflect-metadata": "^0.1.13",
+    "rimraf": "^3.0.2",
     "touch-cli": "^0.0.1",
     "typeorm": "^0.2.31",
     "typeorm-pagination": "^2.0.1"
