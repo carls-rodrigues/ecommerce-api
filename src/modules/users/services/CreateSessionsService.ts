@@ -16,7 +16,7 @@ interface IResponse {
   token: string;
 }
 
-class CreateSessionsSerices {
+class CreateSessionsServices {
   public async execute({ email, password }: IRequest): Promise<IResponse> {
     const usersRepository = getCustomRepository(UsersRepository);
 
@@ -31,7 +31,7 @@ class CreateSessionsSerices {
       throw new AppError('Incorrect email/password.', 401);
     }
 
-    const token = sign({}, authConfig.jwt.secret, {
+    const token = sign({}, authConfig.jwt.secret || '', {
       subject: user.id,
       expiresIn: authConfig.jwt.expiresIn,
     });
@@ -42,4 +42,4 @@ class CreateSessionsSerices {
   }
 }
 
-export default CreateSessionsSerices;
+export default CreateSessionsServices;
