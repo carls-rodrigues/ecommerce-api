@@ -1,1 +1,1 @@
-export * from './AuthenticationError';
+export * from './AuthenticationError'
