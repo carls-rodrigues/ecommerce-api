@@ -7,7 +7,7 @@ import { AuthenticationError } from '@/domain/entities/errors'
 
 import { mock, MockProxy } from 'jest-mock-extended'
 import { mocked } from 'jest-mock'
-import { UserAccount } from '@/domain/entities'
+import { AccessToken, UserAccount } from '@/domain/entities'
 
 jest.mock('@/domain/entities/UserAccount')
 
@@ -28,8 +28,8 @@ describe('UserAccountAuthentication', () => {
     })
   })
   beforeEach(() => {
-    facebookApi = mock()
     crypto = mock()
+    crypto.generateToken.mockResolvedValue('any_generated_token')
     userAccountRepositoryFactory = mock()
     userAccountRepository = mock()
     userAccountRepositoryFactory.makeUserAccountRepository.mockReturnValue(userAccountRepository)
@@ -38,42 +38,21 @@ describe('UserAccountAuthentication', () => {
     sut = new UserAccountAuthentication(facebookApi, crypto, userAccountRepositoryFactory)
   })
   it('should call LoadFacebookUserApi with correct params', async () => {
-    facebookApi.loadUser.mockResolvedValueOnce({
-      name: 'any_facebook_name',
-      email: 'any_facebook_email',
-      facebookId: 'any_facebook_id'
-    })
     await sut.execute({ token })
     expect(facebookApi.loadUser).toHaveBeenCalledWith({ token })
     expect(facebookApi.loadUser).toHaveBeenCalledTimes(1)
   })
   it('should throw AuthenticationError when LoadFacebookUserApi returns undefined', async () => {
-    facebookApi.loadUser.mockResolvedValue(undefined)
+    facebookApi.loadUser.mockResolvedValueOnce(undefined)
     const promise = sut.execute({ token })
     await expect(promise).rejects.toThrow(new AuthenticationError())
   })
   it('should call UserAccountRepository returns LoadFacebookUserApi returns data', async () => {
-    facebookApi.loadUser.mockResolvedValueOnce({
-      name: 'any_facebook_name',
-      email: 'any_facebook_email',
-      facebookId: 'any_facebook_id'
-    })
     await sut.execute({ token })
     expect(userAccountRepository.loadAccount).toHaveBeenCalledWith({ email: 'any_facebook_email' })
     expect(userAccountRepository.loadAccount).toHaveBeenCalledTimes(1)
   })
   it('should call SaveAccount with FacebookAccount', async () => {
-    facebookApi.loadUser.mockResolvedValueOnce({
-      name: 'any_facebook_name',
-      email: 'any_facebook_email',
-      facebookId: 'any_facebook_id'
-    })
-    userAccountRepository.loadAccount.mockResolvedValueOnce({
-      name: 'any_facebook_name',
-      email: 'any_facebook_email',
-      facebookId: 'any_facebook_id',
-      id: 'any_account_id'
-    })
     const FacebookAccountStub = jest.fn().mockImplementation(() => ({
       name: 'any_facebook_name',
       email: 'any_facebook_email',
@@ -87,5 +66,13 @@ describe('UserAccountAuthentication', () => {
       facebookId: 'any_facebook_id'
     })
     expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
+  })
+  it('should call TokenGenerator with correct params', async () => {
+    await sut.execute({ token })
+    expect(crypto.generateToken).toHaveBeenCalledWith({
+      key: 'any_account_id',
+      expirationInMs: AccessToken.expirationInMs
+    })
+    expect(crypto.generateToken).toHaveBeenCalledTimes(1)
   })
 })
