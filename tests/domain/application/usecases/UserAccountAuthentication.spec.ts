@@ -34,7 +34,7 @@ describe('UserAccountAuthentication', () => {
     userAccountRepository = mock()
     userAccountRepositoryFactory.makeUserAccountRepository.mockReturnValue(userAccountRepository)
     userAccountRepository.loadAccount.mockResolvedValue(undefined)
-    userAccountRepository.saveAccount.mockResolvedValueOnce({ id: 'any_account_id' })
+    userAccountRepository.saveAccount.mockResolvedValue({ id: 'any_account_id' })
     sut = new UserAccountAuthentication(facebookApi, crypto, userAccountRepositoryFactory)
   })
   it('should call LoadFacebookUserApi with correct params', async () => {
@@ -83,6 +83,11 @@ describe('UserAccountAuthentication', () => {
     userAccountRepository.loadAccount.mockRejectedValueOnce(new Error('load_error'))
     const promise = sut.execute({ token })
     await expect(promise).rejects.toThrow(new Error('load_error'))
+  })
+  it('should throw if SaveUserAccountRepository throws', async () => {
+    userAccountRepository.saveAccount.mockRejectedValueOnce(new Error('save_error'))
+    const promise = sut.execute({ token })
+    await expect(promise).rejects.toThrow(new Error('save_error'))
   })
   it('should throw if TokenGeneraTor throws', async () => {
     crypto.generateToken.mockRejectedValueOnce(new Error('token_error'))
