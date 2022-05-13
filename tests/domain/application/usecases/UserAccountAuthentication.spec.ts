@@ -37,61 +37,63 @@ describe('UserAccountAuthentication', () => {
     userAccountRepository.saveAccount.mockResolvedValue({ id: 'any_account_id' })
     sut = new UserAccountAuthentication(facebookApi, crypto, userAccountRepositoryFactory)
   })
-  it('should call LoadFacebookUserApi with correct params', async () => {
-    await sut.execute({ token })
-    expect(facebookApi.loadUser).toHaveBeenCalledWith({ token })
-    expect(facebookApi.loadUser).toHaveBeenCalledTimes(1)
-  })
-  it('should throw AuthenticationError when LoadFacebookUserApi returns undefined', async () => {
-    facebookApi.loadUser.mockResolvedValueOnce(undefined)
-    const promise = sut.execute({ token })
-    await expect(promise).rejects.toThrow(new AuthenticationError())
-  })
-  it('should call UserAccountRepository returns LoadFacebookUserApi returns data', async () => {
-    await sut.execute({ token })
-    expect(userAccountRepository.loadAccount).toHaveBeenCalledWith({ email: 'any_facebook_email' })
-    expect(userAccountRepository.loadAccount).toHaveBeenCalledTimes(1)
-  })
-  it('should call SaveAccount with FacebookAccount', async () => {
-    const FacebookAccountStub = jest.fn().mockImplementation(() => ({
-      name: 'any_facebook_name',
-      email: 'any_facebook_email',
-      facebookId: 'any_facebook_id'
-    }))
-    mocked(UserAccount).mockImplementation(FacebookAccountStub)
-    await sut.execute({ token })
-    expect(userAccountRepository.saveAccount).toHaveBeenCalledWith({
-      name: 'any_facebook_name',
-      email: 'any_facebook_email',
-      facebookId: 'any_facebook_id'
+  describe('LoginWithFacebook', () => {
+    it('should call LoadFacebookUserApi with correct params', async () => {
+      await sut.execute({ token })
+      expect(facebookApi.loadUser).toHaveBeenCalledWith({ token })
+      expect(facebookApi.loadUser).toHaveBeenCalledTimes(1)
     })
-    expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
-  })
-  it('should call TokenGenerator with correct params', async () => {
-    await sut.execute({ token })
-    expect(crypto.generateToken).toHaveBeenCalledWith({
-      key: 'any_account_id',
-      expirationInMs: AccessToken.expirationInMs
+    it('should throw AuthenticationError when LoadFacebookUserApi returns undefined', async () => {
+      facebookApi.loadUser.mockResolvedValueOnce(undefined)
+      const promise = sut.execute({ token })
+      await expect(promise).rejects.toThrow(new AuthenticationError())
     })
-    expect(crypto.generateToken).toHaveBeenCalledTimes(1)
-  })
-  it('should return an AccessToken on success', async () => {
-    const authResult = await sut.execute({ token })
-    expect(authResult).toEqual({ accessToken: 'any_generated_token' })
-  })
-  it('should throw if LoadUserAccountRepository throws', async () => {
-    userAccountRepository.loadAccount.mockRejectedValueOnce(new Error('load_error'))
-    const promise = sut.execute({ token })
-    await expect(promise).rejects.toThrow(new Error('load_error'))
-  })
-  it('should throw if SaveUserAccountRepository throws', async () => {
-    userAccountRepository.saveAccount.mockRejectedValueOnce(new Error('save_error'))
-    const promise = sut.execute({ token })
-    await expect(promise).rejects.toThrow(new Error('save_error'))
-  })
-  it('should throw if TokenGeneraTor throws', async () => {
-    crypto.generateToken.mockRejectedValueOnce(new Error('token_error'))
-    const promise = sut.execute({ token })
-    await expect(promise).rejects.toThrow(new Error('token_error'))
+    it('should call UserAccountRepository returns LoadFacebookUserApi returns data', async () => {
+      await sut.execute({ token })
+      expect(userAccountRepository.loadAccount).toHaveBeenCalledWith({ email: 'any_facebook_email' })
+      expect(userAccountRepository.loadAccount).toHaveBeenCalledTimes(1)
+    })
+    it('should call SaveAccount with FacebookAccount', async () => {
+      const FacebookAccountStub = jest.fn().mockImplementation(() => ({
+        name: 'any_facebook_name',
+        email: 'any_facebook_email',
+        facebookId: 'any_facebook_id'
+      }))
+      mocked(UserAccount).mockImplementation(FacebookAccountStub)
+      await sut.execute({ token })
+      expect(userAccountRepository.saveAccount).toHaveBeenCalledWith({
+        name: 'any_facebook_name',
+        email: 'any_facebook_email',
+        facebookId: 'any_facebook_id'
+      })
+      expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
+    })
+    it('should call TokenGenerator with correct params', async () => {
+      await sut.execute({ token })
+      expect(crypto.generateToken).toHaveBeenCalledWith({
+        key: 'any_account_id',
+        expirationInMs: AccessToken.expirationInMs
+      })
+      expect(crypto.generateToken).toHaveBeenCalledTimes(1)
+    })
+    it('should return an AccessToken on success', async () => {
+      const authResult = await sut.execute({ token })
+      expect(authResult).toEqual({ accessToken: 'any_generated_token' })
+    })
+    it('should throw if LoadUserAccountRepository throws', async () => {
+      userAccountRepository.loadAccount.mockRejectedValueOnce(new Error('load_error'))
+      const promise = sut.execute({ token })
+      await expect(promise).rejects.toThrow(new Error('load_error'))
+    })
+    it('should throw if SaveUserAccountRepository throws', async () => {
+      userAccountRepository.saveAccount.mockRejectedValueOnce(new Error('save_error'))
+      const promise = sut.execute({ token })
+      await expect(promise).rejects.toThrow(new Error('save_error'))
+    })
+    it('should throw if TokenGeneraTor throws', async () => {
+      crypto.generateToken.mockRejectedValueOnce(new Error('token_error'))
+      const promise = sut.execute({ token })
+      await expect(promise).rejects.toThrow(new Error('token_error'))
+    })
   })
 })

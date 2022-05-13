@@ -40,6 +40,9 @@ export class UserAccountAuthentication implements UserAccountFacebookAuthenticat
         return { accessToken: token }
       }
     }
+    if (params.email !== undefined && params.password !== undefined) {
+      // const accountData = await this.userAccountRepository.loadAccount({ email: params.email })
+    }
     throw new AuthenticationError()
   }
 }
