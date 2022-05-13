@@ -1,5 +1,5 @@
-import { UserAccountRepository } from '../repository/UserAccountRepository'
+import { SaveUserAccountRepository, UserAccountRepository } from '../repository/UserAccountRepository'
 
 export interface RepositoryFactory {
-  makeUserAccountRepository(): UserAccountRepository
+  makeUserAccountRepository(): UserAccountRepository & SaveUserAccountRepository
 }

@@ -11,14 +11,16 @@ export namespace UserAccountRepository {
   export type Result = undefined | {
     id: string
     name?: string
+    email: string
+    password?: string
   }
 }
 
 export interface SaveUserAccountRepository {
-  saveAccount(params: SaveFacebookAccountRepository.Params): Promise<SaveFacebookAccountRepository.Result>
+  saveAccount(params: SaveUserAccountRepository.Params): Promise<SaveUserAccountRepository.Result>
 }
 
-export namespace SaveFacebookAccountRepository {
+export namespace SaveUserAccountRepository {
   export type Params = {
     name: string
     email: string
