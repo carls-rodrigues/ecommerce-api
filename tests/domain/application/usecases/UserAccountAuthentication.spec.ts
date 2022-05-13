@@ -97,8 +97,8 @@ describe('UserAccountAuthentication', () => {
     })
   })
   describe('Login or create an account with email and password', () => {
-    beforeAll(() => {
-      jest.clearAllMocks()
+    beforeEach(() => {
+      userAccountRepository.saveAccount.mockResolvedValue({ id: 'any_account_id' })
     })
     it('should call UserAccountRepository with correct params', async () => {
       await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
@@ -121,6 +121,14 @@ describe('UserAccountAuthentication', () => {
         password: 'any_account_password'
       })
       expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
+    })
+    it('should call TokenGenerator with correct params', async () => {
+      await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
+      expect(crypto.generateToken).toHaveBeenCalledWith({
+        key: 'any_account_id',
+        expirationInMs: AccessToken.expirationInMs
+      })
+      expect(crypto.generateToken).toHaveBeenCalledTimes(1)
     })
   })
 })

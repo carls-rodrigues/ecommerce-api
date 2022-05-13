@@ -44,12 +44,13 @@ export class UserAccountAuthentication implements UserAccountFacebookAuthenticat
       const accountData = await this.userAccountRepository.loadAccount({ email: params.email })
       if (accountData === undefined) {
         const userAccount = new UserAccount({} as any, accountData)
-        await this.userAccountRepository.saveAccount({
+        const { id } = await this.userAccountRepository.saveAccount({
           id: userAccount.id,
           name: userAccount.name,
           email: userAccount.email,
           password: userAccount.password
         })
+        await this.crypto.generateToken({ key: id, expirationInMs: AccessToken.expirationInMs }) as any
         return { accessToken: 'tmp_token' }
       }
     }
