@@ -79,4 +79,9 @@ describe('UserAccountAuthentication', () => {
     const authResult = await sut.execute({ token })
     expect(authResult).toEqual({ accessToken: 'any_generated_token' })
   })
+  it('should throw if LoadUserAccountRepository throws', async () => {
+    userAccountRepository.loadAccount.mockRejectedValueOnce(new Error('load_error'))
+    const promise = sut.execute({ token })
+    await expect(promise).rejects.toThrow(new Error('load_error'))
+  })
 })
