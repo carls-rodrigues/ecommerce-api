@@ -84,4 +84,9 @@ describe('UserAccountAuthentication', () => {
     const promise = sut.execute({ token })
     await expect(promise).rejects.toThrow(new Error('load_error'))
   })
+  it('should throw if TokenGeneraTor throws', async () => {
+    crypto.generateToken.mockRejectedValueOnce(new Error('token_error'))
+    const promise = sut.execute({ token })
+    await expect(promise).rejects.toThrow(new Error('token_error'))
+  })
 })
