@@ -37,7 +37,7 @@ describe('UserAccountAuthentication', () => {
     userAccountRepository.saveAccount.mockResolvedValue({ id: 'any_account_id' })
     sut = new UserAccountAuthentication(facebookApi, crypto, userAccountRepositoryFactory)
   })
-  describe('LoginWithFacebook', () => {
+  describe('Login with Facebook or create an account', () => {
     it('should call LoadFacebookUserApi with correct params', async () => {
       await sut.execute({ token })
       expect(facebookApi.loadUser).toHaveBeenCalledWith({ token })
@@ -94,6 +94,13 @@ describe('UserAccountAuthentication', () => {
       crypto.generateToken.mockRejectedValueOnce(new Error('token_error'))
       const promise = sut.execute({ token })
       await expect(promise).rejects.toThrow(new Error('token_error'))
+    })
+  })
+  describe('Login or create an account with email and password', () => {
+    it('should call UserAccountRepository with correct params', async () => {
+      await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
+      expect(userAccountRepository.loadAccount).toHaveBeenCalledWith({ email: 'any_account_email' })
+      expect(userAccountRepository.loadAccount).toHaveBeenCalledTimes(1)
     })
   })
 })
