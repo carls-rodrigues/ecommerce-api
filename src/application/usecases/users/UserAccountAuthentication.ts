@@ -2,6 +2,7 @@ import { LoadFacebookUserApi } from '@/domain/contracts/apis'
 import { TokenGenerator } from '@/domain/contracts/crypto/Token'
 import { RepositoryFactory } from '@/domain/contracts/factory'
 import { UserAccountRepository, SaveUserAccountRepository } from '@/domain/contracts/repository'
+import { AuthenticationError } from '@/domain/entities/errors'
 
 type Params = {
   token?: string
@@ -22,12 +23,13 @@ export class UserAccountAuthentication {
     this.userAccountRepository = userAccountRepositoryFactory.makeUserAccountRepository()
   }
 
-  async execute (params: Params): Promise<void> {
+  async execute (params: Params): Promise<any> {
     if (params.token !== undefined) {
-      await this.facebookApi.loadUser({ token: params.token })
-    }
-    if (params.email !== undefined && params.password !== undefined) { // local login
-      await this.userAccountRepository.loadAccount({ email: params.email })
+      const fbData = await this.facebookApi.loadUser({ token: params.token })
+      if (fbData !== undefined) {
+        return await this.userAccountRepository.loadAccount({ email: fbData.email })
+      }
+      throw new AuthenticationError()
     }
   }
 }
