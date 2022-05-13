@@ -2,6 +2,7 @@ import { LoadFacebookUserApi } from '@/domain/contracts/apis'
 import { TokenGenerator } from '@/domain/contracts/crypto/Token'
 import { RepositoryFactory } from '@/domain/contracts/factory'
 import { UserAccountRepository, SaveUserAccountRepository } from '@/domain/contracts/repository'
+import { UserAccount } from '@/domain/entities'
 import { AuthenticationError } from '@/domain/entities/errors'
 
 type Params = {
@@ -27,7 +28,14 @@ export class UserAccountAuthentication {
     if (params.token !== undefined) {
       const fbData = await this.facebookApi.loadUser({ token: params.token })
       if (fbData !== undefined) {
-        return await this.userAccountRepository.loadAccount({ email: fbData.email })
+        const accountData = await this.userAccountRepository.loadAccount({ email: fbData.email })
+        const userAccount = new UserAccount(fbData, accountData)
+        return await this.userAccountRepository.saveAccount({
+          id: userAccount.id,
+          name: userAccount.name,
+          email: userAccount.email,
+          facebookId: userAccount.facebookId
+        })
       }
       throw new AuthenticationError()
     }

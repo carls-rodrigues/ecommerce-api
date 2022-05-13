@@ -13,6 +13,7 @@ export namespace UserAccountRepository {
     name?: string
     email: string
     password?: string
+    facebookId?: string
   }
 }
 
@@ -22,6 +23,7 @@ export interface SaveUserAccountRepository {
 
 export namespace SaveUserAccountRepository {
   export type Params = {
+    id: string
     name: string
     email: string
     password?: string

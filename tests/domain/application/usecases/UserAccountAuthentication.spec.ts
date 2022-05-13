@@ -4,7 +4,12 @@ import { TokenGenerator } from '@/domain/contracts/crypto/Token'
 import { RepositoryFactory } from '@/domain/contracts/factory'
 import { SaveUserAccountRepository, UserAccountRepository } from '@/domain/contracts/repository'
 import { AuthenticationError } from '@/domain/entities/errors'
+
 import { mock, MockProxy } from 'jest-mock-extended'
+import { mocked } from 'jest-mock'
+import { UserAccount } from '@/domain/entities'
+
+jest.mock('@/domain/entities/UserAccount')
 
 describe('UserAccountAuthentication', () => {
   let facebookApi: MockProxy<LoadFacebookUserApi>
@@ -29,6 +34,7 @@ describe('UserAccountAuthentication', () => {
     userAccountRepository = mock()
     userAccountRepositoryFactory.makeUserAccountRepository.mockReturnValue(userAccountRepository)
     userAccountRepository.loadAccount.mockResolvedValue(undefined)
+    userAccountRepository.saveAccount.mockResolvedValueOnce({ id: 'any_account_id' })
     sut = new UserAccountAuthentication(facebookApi, crypto, userAccountRepositoryFactory)
   })
   it('should call LoadFacebookUserApi with correct params', async () => {
@@ -55,5 +61,31 @@ describe('UserAccountAuthentication', () => {
     await sut.execute({ token })
     expect(userAccountRepository.loadAccount).toHaveBeenCalledWith({ email: 'any_facebook_email' })
     expect(userAccountRepository.loadAccount).toHaveBeenCalledTimes(1)
+  })
+  it('should call SaveAccount with FacebookAccount', async () => {
+    facebookApi.loadUser.mockResolvedValueOnce({
+      name: 'any_facebook_name',
+      email: 'any_facebook_email',
+      facebookId: 'any_facebook_id'
+    })
+    userAccountRepository.loadAccount.mockResolvedValueOnce({
+      name: 'any_facebook_name',
+      email: 'any_facebook_email',
+      facebookId: 'any_facebook_id',
+      id: 'any_account_id'
+    })
+    const FacebookAccountStub = jest.fn().mockImplementation(() => ({
+      name: 'any_facebook_name',
+      email: 'any_facebook_email',
+      facebookId: 'any_facebook_id'
+    }))
+    mocked(UserAccount).mockImplementation(FacebookAccountStub)
+    await sut.execute({ token })
+    expect(userAccountRepository.saveAccount).toHaveBeenCalledWith({
+      name: 'any_facebook_name',
+      email: 'any_facebook_email',
+      facebookId: 'any_facebook_id'
+    })
+    expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
   })
 })
