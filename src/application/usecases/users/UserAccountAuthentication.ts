@@ -50,8 +50,8 @@ export class UserAccountAuthentication implements UserAccountFacebookAuthenticat
           email: userAccount.email,
           password: userAccount.password
         })
-        await this.crypto.generateToken({ key: id, expirationInMs: AccessToken.expirationInMs }) as any
-        return { accessToken: 'tmp_token' }
+        const token = await this.crypto.generateToken({ key: id, expirationInMs: AccessToken.expirationInMs }) as any
+        return { accessToken: token }
       }
     }
     throw new AuthenticationError()

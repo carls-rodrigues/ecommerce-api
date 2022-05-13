@@ -130,5 +130,9 @@ describe('UserAccountAuthentication', () => {
       })
       expect(crypto.generateToken).toHaveBeenCalledTimes(1)
     })
+    it('should return an AccessToken on success', async () => {
+      const authResult = await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
+      expect(authResult).toEqual({ accessToken: 'any_generated_token' })
+    })
   })
 })
