@@ -46,4 +46,14 @@ describe('UserAccountAuthentication', () => {
     const promise = sut.execute({ token })
     await expect(promise).rejects.toThrow(new AuthenticationError())
   })
+  it('should call UserAccountRepository returns LoadFacebookUserApi returns data', async () => {
+    facebookApi.loadUser.mockResolvedValueOnce({
+      name: 'any_facebook_name',
+      email: 'any_facebook_email',
+      facebookId: 'any_facebook_id'
+    })
+    await sut.execute({ token })
+    expect(userAccountRepository.loadAccount).toHaveBeenCalledWith({ email: 'any_facebook_email' })
+    expect(userAccountRepository.loadAccount).toHaveBeenCalledTimes(1)
+  })
 })
