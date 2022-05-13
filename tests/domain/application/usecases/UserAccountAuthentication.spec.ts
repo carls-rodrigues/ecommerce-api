@@ -97,10 +97,30 @@ describe('UserAccountAuthentication', () => {
     })
   })
   describe('Login or create an account with email and password', () => {
+    beforeAll(() => {
+      jest.clearAllMocks()
+    })
     it('should call UserAccountRepository with correct params', async () => {
       await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
       expect(userAccountRepository.loadAccount).toHaveBeenCalledWith({ email: 'any_account_email' })
       expect(userAccountRepository.loadAccount).toHaveBeenCalledTimes(1)
+    })
+    it('should call saveAccount with email and password', async () => {
+      const FacebookAccountStub = jest.fn().mockImplementationOnce(() => ({
+        id: 'any_account_id',
+        name: 'any_account_name',
+        email: 'any_account_email',
+        password: 'any_account_password'
+      }))
+      mocked(UserAccount).mockImplementationOnce(FacebookAccountStub)
+      await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
+      expect(userAccountRepository.saveAccount).toHaveBeenCalledWith({
+        id: 'any_account_id',
+        name: 'any_account_name',
+        email: 'any_account_email',
+        password: 'any_account_password'
+      })
+      expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
     })
   })
 })

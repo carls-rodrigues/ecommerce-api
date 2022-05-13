@@ -27,7 +27,7 @@ export namespace SaveUserAccountRepository {
     name: string
     email: string
     password?: string
-    facebookId: string
+    facebookId?: string
   }
   export type Result = {
     id: string
