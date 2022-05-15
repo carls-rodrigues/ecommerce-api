@@ -157,5 +157,9 @@ describe('UserAccountAuthentication', () => {
       const authResult = await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
       expect(authResult).toEqual({ accessToken: 'any_generated_token' })
     })
+    it('should throw if no params is provided', async () => {
+      const promise = sut.execute({ })
+      await expect(promise).rejects.toThrow(new AuthenticationError())
+    })
   })
 })
