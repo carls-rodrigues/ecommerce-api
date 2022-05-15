@@ -157,46 +157,5 @@ describe('UserAccountAuthentication', () => {
       const authResult = await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
       expect(authResult).toEqual({ accessToken: 'any_generated_token' })
     })
-    // it('should call saveAccount with email and password and name', async () => {
-    //   const FacebookAccountStub = jest.fn().mockImplementationOnce(() => ({
-    //     id: 'any_account_id',
-    //     name: 'any_account_name',
-    //     email: 'any_account_email',
-    //     password: 'any_account_password'
-    //   }))
-    //   mocked(UserAccount).mockImplementationOnce(FacebookAccountStub)
-    //   await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
-    //   expect(userAccountRepository.saveAccount).toHaveBeenCalledWith({
-    //     id: 'any_account_id',
-    //     name: 'any_account_name',
-    //     email: 'any_account_email',
-    //     password: 'any_account_password'
-    //   })
-    //   expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
-    // })
-    // it('should throw if saveAccount throws', async () => {
-    //   const promise = sut.execute({ email: 'any_account_email', password: 'any_account_password' })
-    //   await expect(promise).rejects.toThrow(new AuthenticationError())
-    //   // expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
-    // })
-    // it('should call TokenGenerator with correct params', async () => {
-    //   await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
-    //   expect(crypto.generateToken).toHaveBeenCalledWith({
-    //     key: 'any_account_id',
-    //     expirationInMs: AccessToken.expirationInMs
-    //   })
-    //   expect(crypto.generateToken).toHaveBeenCalledTimes(1)
-    // })
-    // it('should return an AccessToken if user exists', async () => {
-    //   userAccountRepository.loadAccount.mockResolvedValueOnce({
-    //     id: 'any_account_id',
-    //     name: 'any_account_name',
-    //     email: 'any_account_email',
-    //     password: 'any_account_password'
-    //   })
-    //   userAccountRepository.saveAccount.mockResolvedValueOnce({ id: 'any_account_id' })
-    //   const authResult = await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
-    //   expect(authResult).toEqual({ accessToken: 'any_generated_token' })
-    // })
   })
 })
