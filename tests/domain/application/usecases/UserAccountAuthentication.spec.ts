@@ -97,15 +97,13 @@ describe('UserAccountAuthentication', () => {
     })
   })
   describe('Login or create an account with email and password', () => {
-    beforeEach(() => {
-      userAccountRepository.saveAccount.mockResolvedValue({ id: 'any_account_id' })
-    })
-    it('should call UserAccountRepository with correct params', async () => {
-      await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
-      expect(userAccountRepository.loadAccount).toHaveBeenCalledWith({ email: 'any_account_email' })
-      expect(userAccountRepository.loadAccount).toHaveBeenCalledTimes(1)
-    })
-    it('should call saveAccount with email and password', async () => {
+    it('should call TokenGenerator if an account exists', async () => {
+      userAccountRepository.loadAccount.mockResolvedValueOnce({
+        id: 'any_account_id',
+        name: 'any_account_name',
+        email: 'any_account_email',
+        password: 'any_account_password'
+      })
       const FacebookAccountStub = jest.fn().mockImplementationOnce(() => ({
         id: 'any_account_id',
         name: 'any_account_name',
@@ -114,25 +112,91 @@ describe('UserAccountAuthentication', () => {
       }))
       mocked(UserAccount).mockImplementationOnce(FacebookAccountStub)
       await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
-      expect(userAccountRepository.saveAccount).toHaveBeenCalledWith({
+      expect(crypto.generateToken).toHaveBeenCalledWith({ key: 'any_account_id', expirationInMs: AccessToken.expirationInMs })
+      expect(crypto.generateToken).toHaveBeenCalledTimes(1)
+    })
+    it('should return an AccessToken if an account exists', async () => {
+      userAccountRepository.loadAccount.mockResolvedValueOnce({
         id: 'any_account_id',
         name: 'any_account_name',
         email: 'any_account_email',
         password: 'any_account_password'
       })
-      expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
-    })
-    it('should call TokenGenerator with correct params', async () => {
-      await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
-      expect(crypto.generateToken).toHaveBeenCalledWith({
-        key: 'any_account_id',
-        expirationInMs: AccessToken.expirationInMs
-      })
-      expect(crypto.generateToken).toHaveBeenCalledTimes(1)
-    })
-    it('should return an AccessToken on success', async () => {
+      const FacebookAccountStub = jest.fn().mockImplementationOnce(() => ({
+        id: 'any_account_id',
+        name: 'any_account_name',
+        email: 'any_account_email',
+        password: 'any_account_password'
+      }))
+      mocked(UserAccount).mockImplementationOnce(FacebookAccountStub)
       const authResult = await sut.execute({ email: 'any_account_email', password: 'any_account_password' })
       expect(authResult).toEqual({ accessToken: 'any_generated_token' })
     })
+    it('should throw if password does not match', async () => {
+      userAccountRepository.loadAccount.mockResolvedValueOnce({
+        id: 'any_account_id',
+        name: 'any_account_name',
+        email: 'any_account_email',
+        password: 'any_account_password'
+      })
+      const FacebookAccountStub = jest.fn().mockImplementationOnce(() => ({
+        id: 'any_account_id',
+        name: 'any_account_name',
+        email: 'any_account_email',
+        password: 'any_account_password'
+      }))
+      mocked(UserAccount).mockImplementationOnce(FacebookAccountStub)
+      const promise = sut.execute({ email: 'any_account_email', password: 'any_account_password2', name: 'any_account_name' })
+      await expect(promise).rejects.toThrow(new AuthenticationError())
+    })
+    it('should throws if accountData does not exists and a name is not provided', async () => {
+      const promise = sut.execute({ email: 'any_account_email', password: 'any_account_password' })
+      await expect(promise).rejects.toThrow(new AuthenticationError())
+    })
+    it('should create a new user when email, name and password is provided', async () => {
+      const authResult = await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
+      expect(authResult).toEqual({ accessToken: 'any_generated_token' })
+    })
+    // it('should call saveAccount with email and password and name', async () => {
+    //   const FacebookAccountStub = jest.fn().mockImplementationOnce(() => ({
+    //     id: 'any_account_id',
+    //     name: 'any_account_name',
+    //     email: 'any_account_email',
+    //     password: 'any_account_password'
+    //   }))
+    //   mocked(UserAccount).mockImplementationOnce(FacebookAccountStub)
+    //   await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
+    //   expect(userAccountRepository.saveAccount).toHaveBeenCalledWith({
+    //     id: 'any_account_id',
+    //     name: 'any_account_name',
+    //     email: 'any_account_email',
+    //     password: 'any_account_password'
+    //   })
+    //   expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
+    // })
+    // it('should throw if saveAccount throws', async () => {
+    //   const promise = sut.execute({ email: 'any_account_email', password: 'any_account_password' })
+    //   await expect(promise).rejects.toThrow(new AuthenticationError())
+    //   // expect(userAccountRepository.saveAccount).toHaveBeenCalledTimes(1)
+    // })
+    // it('should call TokenGenerator with correct params', async () => {
+    //   await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
+    //   expect(crypto.generateToken).toHaveBeenCalledWith({
+    //     key: 'any_account_id',
+    //     expirationInMs: AccessToken.expirationInMs
+    //   })
+    //   expect(crypto.generateToken).toHaveBeenCalledTimes(1)
+    // })
+    // it('should return an AccessToken if user exists', async () => {
+    //   userAccountRepository.loadAccount.mockResolvedValueOnce({
+    //     id: 'any_account_id',
+    //     name: 'any_account_name',
+    //     email: 'any_account_email',
+    //     password: 'any_account_password'
+    //   })
+    //   userAccountRepository.saveAccount.mockResolvedValueOnce({ id: 'any_account_id' })
+    //   const authResult = await sut.execute({ email: 'any_account_email', password: 'any_account_password', name: 'any_account_name' })
+    //   expect(authResult).toEqual({ accessToken: 'any_generated_token' })
+    // })
   })
 })

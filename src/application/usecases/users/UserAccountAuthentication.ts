@@ -8,6 +8,7 @@ import { AuthenticationError } from '@/domain/entities/errors'
 type Params = {
   token?: string
   email?: string
+  name?: string
   password?: string
 }
 export interface UserAccountFacebookAuthentication {
@@ -26,34 +27,53 @@ export class UserAccountAuthentication implements UserAccountFacebookAuthenticat
 
   async execute (params: Params): Promise<{ accessToken: string }> {
     if (params.token !== undefined) {
-      const fbData = await this.facebookApi.loadUser({ token: params.token })
-      if (fbData !== undefined) {
-        const accountData = await this.userAccountRepository.loadAccount({ email: fbData.email })
-        const userAccount = new UserAccount(fbData, accountData)
-        const { id } = await this.userAccountRepository.saveAccount({
-          id: userAccount.id,
-          name: userAccount.name,
-          email: userAccount.email,
-          facebookId: userAccount.facebookId
-        })
-        const token = await this.crypto.generateToken({ key: id, expirationInMs: AccessToken.expirationInMs })
-        return { accessToken: token }
-      }
+      return await this.createFacebookAccount(params)
     }
-    if (params.email !== undefined && params.password !== undefined) {
-      const accountData = await this.userAccountRepository.loadAccount({ email: params.email })
-      if (accountData === undefined) {
-        const userAccount = new UserAccount({} as any, accountData)
-        const { id } = await this.userAccountRepository.saveAccount({
-          id: userAccount.id,
-          name: userAccount.name,
-          email: userAccount.email,
-          password: userAccount.password
-        })
-        const token = await this.crypto.generateToken({ key: id, expirationInMs: AccessToken.expirationInMs }) as any
-        return { accessToken: token }
-      }
+    if ((params.email !== undefined && params.password !== undefined)) {
+      return await this.getAccountOrCreateIfNotExists(params)
     }
     throw new AuthenticationError()
+  }
+
+  private async createFacebookAccount (params: Params): Promise<{ accessToken: string }> {
+    const fbData = await this.facebookApi.loadUser({ token: params.token! })
+    if (fbData !== undefined) {
+      const accountData = await this.userAccountRepository.loadAccount({ email: fbData.email })
+      const userAccount = new UserAccount(fbData, accountData)
+      const id = await this.persistAccount(userAccount)
+      const token = await this.crypto.generateToken({ key: id, expirationInMs: AccessToken.expirationInMs })
+      return { accessToken: token }
+    }
+    throw new AuthenticationError()
+  }
+
+  private async getAccountOrCreateIfNotExists (params: Params): Promise<{ accessToken: string }> {
+    const accountData = await this.userAccountRepository.loadAccount({ email: params.email! })
+    const userAccount = new UserAccount({} as any, accountData)
+    let token: string | null = null
+    if (accountData !== undefined) {
+      if (userAccount.password === params.password) {
+        token = await this.crypto.generateToken({ key: userAccount.id, expirationInMs: AccessToken.expirationInMs })
+        return { accessToken: token }
+      }
+      throw new AuthenticationError()
+    }
+    if (params.name === undefined) {
+      throw new AuthenticationError()
+    }
+    const id = await this.persistAccount(userAccount)
+    token = await this.crypto.generateToken({ key: id, expirationInMs: AccessToken.expirationInMs })
+    return { accessToken: token }
+  }
+
+  private async persistAccount (userAccount: UserAccount): Promise<string> {
+    const { id } = await this.userAccountRepository.saveAccount({
+      id: userAccount.id,
+      name: userAccount.name,
+      email: userAccount.email,
+      password: userAccount.password,
+      facebookId: userAccount.facebookId
+    })
+    return id
   }
 }
